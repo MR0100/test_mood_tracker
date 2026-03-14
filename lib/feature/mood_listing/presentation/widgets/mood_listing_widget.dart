@@ -174,7 +174,10 @@ class _MoodEntryCardState extends State<_MoodEntryCard>
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  widget.entry.timestamp.formattedTime,
+                                  widget
+                                      .entry
+                                      .timestamp
+                                      .formattedTimeDdMdYyyyHhMmAmPm,
                                   style: AppTextStyles.label.copyWith(
                                     color: AppColors.white.withValues(
                                       alpha: 0.9,
