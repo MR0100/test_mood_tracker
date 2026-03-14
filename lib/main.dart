@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import 'core/core.dart';
@@ -7,16 +6,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initInjection();
   runApp(const MoodTrackerApp());
-}
-
-class AppScrollBehavior extends MaterialScrollBehavior {
-  @override
-  Set<PointerDeviceKind> get dragDevices => {
-    PointerDeviceKind.touch,
-    PointerDeviceKind.mouse,
-    PointerDeviceKind.trackpad,
-    PointerDeviceKind.stylus,
-  };
 }
 
 class MoodTrackerApp extends StatelessWidget {

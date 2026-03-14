@@ -1,7 +1,15 @@
 part of '../../mood_listing.feature.dart';
 
-class MoodEntryListingScreen extends StatelessWidget {
+class MoodEntryListingScreen extends StatefulWidget {
   const MoodEntryListingScreen({super.key});
+
+  @override
+  State<MoodEntryListingScreen> createState() => _MoodEntryListingScreenState();
+}
+
+class _MoodEntryListingScreenState extends State<MoodEntryListingScreen> {
+  double _pointerXNormalized = 0;
+  static const double _pointerStep = 0.05;
 
   @override
   Widget build(BuildContext context) {
@@ -14,72 +22,69 @@ class MoodEntryListingScreen extends StatelessWidget {
         backgroundColor: AppColors.primary,
       ),
 
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+      body: LayoutBuilder(
+        builder: (context, constraints) => MouseRegion(
+          onHover: (event) {
+            final double normalizedX =
+                ((event.localPosition.dx / constraints.maxWidth) * 2) - 1;
+            final double nextPointer = ((normalizedX.clamp(-1.0, 1.0) / _pointerStep)
+                        .round() *
+                    _pointerStep)
+                .clamp(-1.0, 1.0);
+            if (nextPointer != _pointerXNormalized) {
+              setState(() => _pointerXNormalized = nextPointer);
+            }
+          },
+          onExit: (_) {
+            if (_pointerXNormalized != 0) {
+              setState(() => _pointerXNormalized = 0);
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
               children: [
-                CorePrimaryButton(
-                  title: "Enter Mood",
-                  onTap: () {
-                    // final String id = DateTime.now().millisecondsSinceEpoch.toString();
-                    // final MoodEntryEntity entry = MoodEntryEntity(id: id, type: , timestamp: timestamp, color: color);
-                    // context.read<MoodListingBloc>().add(AddMoodEntryEvent(moodEntry: moodEntry))
-                  },
-                ),
-              ],
-            ),
-
-            /// MOOD LISTING
-            _moodEntriesListing(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // List all the Mood entries in horizontal timeline.
-  Widget _moodEntriesListing() {
-    return SizedBox(
-      height: 300,
-      width: double.infinity,
-      child: BlocBuilder<MoodListingBloc, MoodListingState>(
-        builder: (context, state) {
-          // Empty State
-          if (state.moodEntries.isEmpty) {
-            return Center(child: Text("No Mood Entries Found"));
-          }
-
-          return ListView.separated(
-            physics: BouncingScrollPhysics(),
-            scrollDirection: Axis.horizontal,
-            itemBuilder: (context, index) {
-              final MoodEntryEntity entry = state.moodEntries[index];
-              return Container(
-                height: 250,
-                width: 300,
-                decoration: BoxDecoration(
-                  color: entry.type.color,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.black.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: MoodType.values
+                            .map(
+                              (e) => Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: CustomPaint(
+                                  size: Size(50, 50),
+                                  painter: MoodFaces(
+                                    type: e,
+                                    followMouse: true,
+                                    pointerXNormalized: _pointerXNormalized,
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                    CorePrimaryButton(
+                      title: "Enter Mood",
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AddMoodDialogue(),
+                        );
+                      },
                     ),
                   ],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppColors.grey.withValues(alpha: 0.1),
-                  ),
                 ),
-              );
-            },
-            separatorBuilder: (context, index) => const SizedBox(width: 8),
-            itemCount: state.moodEntries.length,
-          );
-        },
+
+                /// MOOD LISTING
+                const MoodListingWidget(),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
