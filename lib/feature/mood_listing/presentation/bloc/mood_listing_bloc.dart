@@ -13,7 +13,13 @@ class MoodListingBloc extends Bloc<MoodListingEvent, MoodListingState> {
     AddMoodEntryEvent event,
     Emitter<MoodListingState> emit,
   ) async {
-    emit(state.copyWith(moodEntries: [...state.moodEntries, event.moodEntry]));
+    final List<MoodEntryEntity> newEntries = [
+      ...state.moodEntries,
+      event.moodEntry,
+    ];
+    newEntries.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+    emit(state.copyWith(moodEntries: newEntries.take(7).toList()));
   }
 
   /// Delete Mood Entry
