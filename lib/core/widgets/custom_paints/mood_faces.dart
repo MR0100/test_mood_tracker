@@ -18,9 +18,6 @@ class MoodFaces extends CustomPainter {
 
   /// default is 0,
   /// expressionIntensity is being used to change the expression intensity based on the provided expressionIntensity value.
-  /// when the expressionIntensity is 0, the expression will be normal.
-  /// when the expressionIntensity is 1, the expression will be maximum.
-  /// when the expressionIntensity is -1, the expression will be minimum.
   final double expressionIntensity;
 
   MoodFaces({
@@ -36,16 +33,20 @@ class MoodFaces extends CustomPainter {
     final double faceSize = size.shortestSide;
     final Offset center = Offset(size.width / 2, size.height / 2);
     final double radius = faceSize / 2;
+    final double clampedIntensity = expressionIntensity.clamp(0.0, 1.0);
 
     // ============== PAINTS ==============
     final Paint facePaint = Paint()
       ..color = type.color
       ..style = PaintingStyle.fill;
 
+    final double strokeIntensity = (clampedIntensity == 0
+        ? 1
+        : clampedIntensity * 3);
     final Paint faceBorderPaint = Paint()
-      ..color = type.color.withValues(alpha: 0.25)
+      ..color = type.color.withValues(alpha: 0.20 * strokeIntensity)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = faceSize * 0.1;
+      ..strokeWidth = faceSize * 0.1 * strokeIntensity;
 
     final Paint expressionStrokePaint = Paint()
       ..color = AppColors.black
@@ -60,7 +61,6 @@ class MoodFaces extends CustomPainter {
     canvas.drawCircle(center, radius, faceBorderPaint);
 
     // eyes are also same for all shapes.
-    final double clampedIntensity = expressionIntensity.clamp(0.0, 1.0);
     final double eyeOffsetX = faceSize * 0.18;
     final double eyeY = center.dy - faceSize * 0.14;
     final double baseEyeRadius = faceSize * 0.055;

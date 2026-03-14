@@ -12,4 +12,5 @@ part 'presentation/bloc/mood_listing_event.dart';
 part 'presentation/bloc/mood_listing_state.dart';
 part 'presentation/view/mood_entry_listing_screen.dart';
 part 'presentation/widgets/add_mood_dialogue.dart';
+part 'presentation/widgets/mood_entry_card.dart';
 part 'presentation/widgets/mood_listing_widget.dart';
