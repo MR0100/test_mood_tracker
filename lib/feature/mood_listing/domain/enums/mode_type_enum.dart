@@ -8,9 +8,9 @@ enum MoodType {
   const MoodType();
 
   Color get color => switch (this) {
-    happy => Colors.green,
-    neutral => Colors.yellow,
-    sad => Colors.red,
+    happy => AppColors.happy,
+    neutral => AppColors.neutral,
+    sad => AppColors.sad,
   };
 
   String get name => switch (this) {
