@@ -16,11 +16,19 @@ class MoodFaces extends CustomPainter {
   /// when the pointerXNormalized is -1, eye will be moved to the left.
   final double pointerXNormalized;
 
+  /// default is 0,
+  /// expressionIntensity is being used to change the expression intensity based on the provided expressionIntensity value.
+  /// when the expressionIntensity is 0, the expression will be normal.
+  /// when the expressionIntensity is 1, the expression will be maximum.
+  /// when the expressionIntensity is -1, the expression will be minimum.
+  final double expressionIntensity;
+
   MoodFaces({
     super.repaint,
     required this.type,
     this.followMouse = false,
     this.pointerXNormalized = 0,
+    this.expressionIntensity = 0,
   });
 
   @override
@@ -52,9 +60,20 @@ class MoodFaces extends CustomPainter {
     canvas.drawCircle(center, radius, faceBorderPaint);
 
     // eyes are also same for all shapes.
+    final double clampedIntensity = expressionIntensity.clamp(0.0, 1.0);
     final double eyeOffsetX = faceSize * 0.18;
     final double eyeY = center.dy - faceSize * 0.14;
-    final double eyeRadius = faceSize * 0.055;
+    final double baseEyeRadius = faceSize * 0.055;
+
+    // we are changing the eye radius based on the expression intensity.
+    final double eyeRadius = switch (type) {
+      // increase the eye radius for happy mood.
+      MoodType.happy => baseEyeRadius * (1 + (clampedIntensity * 0.20)),
+      // no change in the eye radius for neutral mood.
+      MoodType.neutral => baseEyeRadius,
+      // decrease the eye radius for neutral mood.
+      MoodType.sad => baseEyeRadius * (1 - (clampedIntensity * 0.24)),
+    };
     final double gazeShift = followMouse
         ? pointerXNormalized.clamp(-1.0, 1.0) * faceSize * 0.1
         : 0;
@@ -76,7 +95,7 @@ class MoodFaces extends CustomPainter {
     // ============== EXPRESSIONs ==============
     final double browY = eyeY - faceSize * 0.12;
     final double browHalfWidth = faceSize * 0.10;
-    final double browTilt = faceSize * 0.025;
+    final double browTilt = faceSize * 0.025 * (1 + (clampedIntensity * 1.3));
     final Path leftBrowPath = Path();
     final Path rightBrowPath = Path();
 
@@ -98,7 +117,10 @@ class MoodFaces extends CustomPainter {
         canvas.drawPath(rightBrowPath, expressionStrokePaint);
 
         // Smile Mouth
-        final Path smilePath = Path()..addArc(mouthRect, 0.1, 3.0);
+        final Rect happyMouthRect = mouthRect.inflate(
+          faceSize * 0.06 * clampedIntensity,
+        );
+        final Path smilePath = Path()..addArc(happyMouthRect, 0.1, 3.0);
         canvas.drawPath(smilePath, expressionStrokePaint);
         break;
       case MoodType.neutral:
@@ -117,11 +139,18 @@ class MoodFaces extends CustomPainter {
           width: faceSize * 0.38,
           height: faceSize * 0.01,
         );
-        canvas.drawLine(
-          neutralMouthRect.centerLeft,
-          neutralMouthRect.centerRight,
-          expressionStrokePaint,
-        );
+        final Path neutralPath = Path()
+          ..moveTo(
+            neutralMouthRect.centerLeft.dx,
+            neutralMouthRect.centerLeft.dy,
+          )
+          ..quadraticBezierTo(
+            neutralMouthRect.center.dx,
+            neutralMouthRect.center.dy + (faceSize * 0.02 * clampedIntensity),
+            neutralMouthRect.centerRight.dx,
+            neutralMouthRect.centerRight.dy,
+          );
+        canvas.drawPath(neutralPath, expressionStrokePaint);
         break;
       case MoodType.sad:
         leftBrowPath
@@ -134,8 +163,10 @@ class MoodFaces extends CustomPainter {
         canvas.drawPath(rightBrowPath, expressionStrokePaint);
 
         // Sad Mouth
-        final Path sadPath = Path()
-          ..addArc(mouthRect.shift(Offset(0, faceSize * 0.18)), 3.3, 2.8);
+        final Rect sadMouthRect = mouthRect
+            .inflate(faceSize * 0.03 * clampedIntensity)
+            .shift(Offset(0, faceSize * (0.18 + (0.04 * clampedIntensity))));
+        final Path sadPath = Path()..addArc(sadMouthRect, 3.3, 2.8);
         canvas.drawPath(sadPath, expressionStrokePaint);
         break;
     }
@@ -145,5 +176,6 @@ class MoodFaces extends CustomPainter {
   bool shouldRepaint(covariant MoodFaces oldDelegate) =>
       oldDelegate.type != type ||
       oldDelegate.followMouse != followMouse ||
-      oldDelegate.pointerXNormalized != pointerXNormalized;
+      oldDelegate.pointerXNormalized != pointerXNormalized ||
+      oldDelegate.expressionIntensity != expressionIntensity;
 }
